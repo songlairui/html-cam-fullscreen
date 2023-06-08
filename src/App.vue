@@ -4,7 +4,7 @@
     <div class="video-container" ref="videoContainerRef" @click="startCam" @dblclick="closeVideo">
       <video ref="video"></video>
       <div class="overlay" v-show="!isPlaying">
-        <span>点击开始播放</span>
+        <span>点击打开摄像头</span>
       </div>
     </div>
   </div>
@@ -92,6 +92,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 6px;
 }
 
 .video-container {
