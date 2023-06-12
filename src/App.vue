@@ -2,7 +2,7 @@
   <div class="container">
     <button @click="requestFullscreen">全屏</button>
     <div class="video-container" ref="videoContainerRef" @click="startCam" @dblclick="closeVideo">
-      <video ref="video"></video>
+      <video ref="video" :style="`transform: scaleX(${hFlip ? -1 : 1})`"></video>
       <div class="overlay" v-show="!isPlaying">
         <span>点击打开摄像头</span>
       </div>
@@ -10,81 +10,66 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
-export default {
-  setup() {
-    const videoContainerRef = ref(null);
-    const videoRef = ref(null);
+const hFlip = ref(true)
+const videoContainerRef = ref<HTMLDivElement>();
+const videoRef = ref<HTMLVideoElement | null | undefined>();
 
 
-    const isFullscreen = ref(false);
-    const isPlaying = ref(false);
-    const mediaStream = ref(null);
-    const isInitialized = ref(false);
+const isFullscreen = ref(false);
+const isPlaying = ref(false);
+const mediaStream = ref<MediaStream | null>();
+const isInitialized = ref(false);
 
-    const requestFullscreen = async () => {
-      const videoContainer = videoContainerRef.value;
-      isFullscreen.value = true;
-      if (videoContainer.requestFullscreen) {
-        await videoContainer.requestFullscreen();
-      }
-    };
-
-    const startCam = async () => {
-      if (isPlaying.value || isInitialized.value) {
-        return;
-      }
-      try {
-        mediaStream.value = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoRef.value.srcObject = mediaStream.value;
-        isInitialized.value = true;
-        playVideo();
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    const playVideo = () => {
-      isPlaying.value = true;
-      videoRef.value.play();
-    };
-
-    const pauseVideo = () => {
-      isPlaying.value = false;
-      videoRef.value.pause();
-    };
-
-    const closeVideo = () => {
-      pauseVideo();
-      mediaStream.value.getTracks()[0].stop();
-      mediaStream.value = null;
-      isInitialized.value = false;
-    };
-
-    onMounted(() => {
-      videoRef.value = document.querySelector('.video-container video');
-    });
-
-    onUnmounted(() => {
-      mediaStream.value.getTracks()[0].stop();
-      mediaStream.value = null;
-    });
-
-    return {
-      isFullscreen,
-      isPlaying,
-      mediaStream,
-      requestFullscreen,
-      startCam,
-      pauseVideo,
-      closeVideo,
-      videoContainerRef,
-      videoRef,
-    };
-  },
+const requestFullscreen = async () => {
+  const videoContainer = videoContainerRef.value;
+  isFullscreen.value = true;
+  if (videoContainer?.requestFullscreen) {
+    await videoContainer.requestFullscreen();
+  }
 };
+
+const startCam = async () => {
+  if (isPlaying.value || isInitialized.value) {
+    return;
+  }
+  try {
+    mediaStream.value = await navigator.mediaDevices.getUserMedia({ video: true });
+    videoRef.value!.srcObject = mediaStream.value;
+    isInitialized.value = true;
+    playVideo();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const playVideo = () => {
+  isPlaying.value = true;
+  videoRef.value!.play();
+};
+
+const pauseVideo = () => {
+  isPlaying.value = false;
+  videoRef.value!.pause();
+};
+
+const closeVideo = () => {
+  pauseVideo();
+  mediaStream.value!.getTracks()[0].stop();
+  mediaStream.value = null;
+  isInitialized.value = false;
+};
+
+onMounted(() => {
+  videoRef.value = document.querySelector('.video-container video') as HTMLVideoElement | null | undefined;
+});
+
+onUnmounted(() => {
+  mediaStream.value!.getTracks()[0].stop();
+  mediaStream.value = null;
+});
 </script>
 
 <style>
